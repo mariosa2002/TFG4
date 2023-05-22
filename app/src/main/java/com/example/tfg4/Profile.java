@@ -9,9 +9,11 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -28,6 +30,7 @@ public class Profile extends AppCompatActivity {
 
     TextView txtName, txtSurname, txtUserName, txtEmail;
     Button btnEdit, btnLogout;
+    ImageView imageView;
 
     FirebaseAuth mAuth;
     FirebaseUser user;
@@ -55,6 +58,7 @@ public class Profile extends AppCompatActivity {
         txtEmail = findViewById(R.id.txtEmail);
         btnEdit = findViewById(R.id.btnEdit);
         btnLogout = findViewById(R.id.btnLogout);
+        imageView = findViewById(R.id.imageView);
 
         if (user == null) {
             Intent intent = new Intent(getApplicationContext(), Login.class);
@@ -68,6 +72,9 @@ public class Profile extends AppCompatActivity {
                     txtSurname.setText(user1.getUserSurname());
                     txtUserName.setText(user1.getUserUserName());
                     txtEmail.setText(user1.getUserEmail());
+                    if (!user1.getImg().equals(null)) {
+                        Glide.with(Profile.this).load(user1).into(imageView);
+                    }
                 }
 
                 @Override

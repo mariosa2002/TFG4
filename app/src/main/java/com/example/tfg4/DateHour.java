@@ -11,15 +11,22 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 public class DateHour extends AppCompatActivity {
@@ -29,7 +36,8 @@ public class DateHour extends AppCompatActivity {
 
     FirebaseAuth mAuth;
     FirebaseUser user;
-    DatabaseReference mDatabase;
+    DatabaseReference mDatabase, dbReference;
+    Query query;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +84,11 @@ public class DateHour extends AppCompatActivity {
         btnReserve.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                boolean aux = true;
+                ArrayList<Reserve> reserves = new ArrayList<Reserve>();
+                int position = 0;
+                boolean aux2 = true;
+
                 String rscName = scName.getText().toString().trim();
                 String rscAddress = scAddress.getText().toString().trim();
                 String rFacilityName = facilityName.getText().toString().trim();
@@ -83,10 +96,44 @@ public class DateHour extends AppCompatActivity {
                 String DateHour = txtDateHour.getText().toString().trim();
                 String Date = DateHour.substring(0, 10);
                 String Hour = DateHour.substring(11);
-                Reserve reserve = new Reserve(rscName, rscAddress, rFacilityName, userID, Date, Hour, DateHour);
-                mDatabase.child("Reserves").push().setValue(reserve);
-                Intent intent = new Intent(getApplicationContext(), Home.class);
-                startActivity(intent);
+
+                int hourAux = Integer.parseInt(Hour.substring(0, 2));
+                if (hourAux < 8 || hourAux > 21) {
+                    aux = false;
+                    Toast.makeText(DateHour.this, "El horario de reserva es de 8 a 22", Toast.LENGTH_SHORT).show();
+                } else {
+                    dbReference = FirebaseDatabase.getInstance().getReference("Reserves");
+                    query = dbReference.orderByChild("scName");
+                    query.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            Reserve reserve = snapshot.getValue(Reserve.class);
+                            if (reserve.getScName().equals(rscName) && reserve.getFacilityName().equals(rFacilityName)) {
+                                reserves.add(reserve);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
+
+                    do {
+                        if (reserves.get(position).getDateHour().equals(DateHour)) {
+                            aux2 = false;
+                            Toast.makeText(DateHour.this, "Fecha y hora no disponible", Toast.LENGTH_SHORT).show();
+                        }
+                        position++;
+                    } while (position < reserves.size() && aux2);
+                }
+
+                if (aux & aux2) {
+                    Reserve reserve = new Reserve(rscName, rscAddress, rFacilityName, userID, Date, Hour, DateHour);
+                    mDatabase.child("Reserves").push().setValue(reserve);
+                    Intent intent = new Intent(getApplicationContext(), Home.class);
+                    startActivity(intent);
+                }
             }
         });
 

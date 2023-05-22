@@ -1,9 +1,11 @@
 package com.example.tfg4;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -12,20 +14,28 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 public class Register extends AppCompatActivity {
 
     EditText txtName, txtSurname, txtEmail, txtUserName, txtPassword, txtPassword2;
-    Button btnRegister;
+    Button btnRegister, btnImg;
     TextView txtLogin;
 
     FirebaseAuth mAuth;
     DatabaseReference mDatabase;
+    StorageReference mStorage;
+
+    private static final int galleryIntent = 1;
+    String img = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +44,9 @@ public class Register extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        mStorage = FirebaseStorage.getInstance().getReference();
 
+        btnImg = findViewById(R.id.btnImg);
         btnRegister = findViewById(R.id.btnRegister);
         txtLogin = findViewById(R.id.txtLogin);
         txtName = findViewById(R.id.txtName);
@@ -65,7 +77,7 @@ public class Register extends AppCompatActivity {
                                         if (task.isSuccessful()) {
                                             // Sign in success, update UI with the signed-in user's information
                                             String userID = mAuth.getCurrentUser().getUid();
-                                            writeNewUser(userID, userName, userSurname, userEmail, userUserName);
+                                            writeNewUser(userID, userName, userSurname, userEmail, userUserName, img);
                                             Intent intent = new Intent (getApplicationContext(), Login.class);
                                             startActivity(intent);
                                         } else {
@@ -82,6 +94,15 @@ public class Register extends AppCompatActivity {
             }
         });
 
+        btnImg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setType("image/*");
+                startActivityForResult(intent, galleryIntent);
+            }
+        });
+
         txtLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -91,8 +112,34 @@ public class Register extends AppCompatActivity {
         });
     }
 
-    private void writeNewUser(String userID, String userName, String userSurname, String userEmail, String userUserName) {
-        User user = new User(userName, userSurname, userEmail, userUserName);
+    private void writeNewUser(String userID, String userName, String userSurname, String userEmail, String userUserName, String img) {
+        User user = new User(userName, userSurname, userEmail, userUserName, img);
         mDatabase.child("Users").child(userID).setValue(user);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == galleryIntent && resultCode == RESULT_OK) {
+            Uri uri = data.getData();
+
+            StorageReference filePath = mStorage.child("Images").child(uri.getLastPathSegment());
+
+            filePath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    Task<Uri> uri2 = taskSnapshot.getStorage().getDownloadUrl();
+                    uri2.addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        @Override
+                        public void onSuccess(Uri downloadUrl) {
+                            img = downloadUrl.toString();
+                        }
+                    });
+
+                    Toast.makeText(Register.this, "Foto subida correctamente", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 }

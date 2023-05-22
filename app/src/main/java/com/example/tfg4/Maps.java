@@ -11,15 +11,21 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
 
-public class Maps extends AppCompatActivity {
+public class Maps extends AppCompatActivity implements OnMapReadyCallback {
 
     BottomNavigationView bottomNavigationView;
-    Button btn;
+
+    private GoogleMap mMap;
 
     public static ArrayList<SportsCenter> global = new ArrayList<SportsCenter>();
 
@@ -28,6 +34,9 @@ public class Maps extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
+        mapFragment.getMapAsync(this);
 
         bottomNavigationView = findViewById(R.id.bottom_navigator);
         bottomNavigationView.setSelectedItemId(R.id.maps);
@@ -58,14 +67,16 @@ public class Maps extends AppCompatActivity {
                 return false;
             }
         });
+    }
 
-        btn = findViewById(R.id.btn);
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
-                startActivity(intent);
-            }
-        });
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        mMap = googleMap;
+
+        for (SportsCenter global : Maps.global) {
+            LatLng position = new LatLng(global.getLatitude(), global.getLongitude());
+            mMap.addMarker(new MarkerOptions().position(position).title(global.getName()));
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(position));
+        }
     }
 }
