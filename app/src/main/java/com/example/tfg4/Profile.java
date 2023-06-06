@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -23,6 +25,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 public class Profile extends AppCompatActivity {
 
@@ -37,6 +41,7 @@ public class Profile extends AppCompatActivity {
 
     FirebaseDatabase database;
     DatabaseReference usersRef;
+    StorageReference storageReference;
     Query query;
 
     @Override
@@ -51,6 +56,7 @@ public class Profile extends AppCompatActivity {
         database = FirebaseDatabase.getInstance();
         usersRef = database.getReference("Users");
         query = usersRef.child(userID);
+        storageReference = FirebaseStorage.getInstance().getReference();
 
         txtName = findViewById(R.id.txtName);
         txtSurname = findViewById(R.id.txtSurname);
@@ -72,8 +78,16 @@ public class Profile extends AppCompatActivity {
                     txtSurname.setText(user1.getUserSurname());
                     txtUserName.setText(user1.getUserUserName());
                     txtEmail.setText(user1.getUserEmail());
-                    if (!user1.getImg().equals(null)) {
-                        Glide.with(Profile.this).load(user1).into(imageView);
+                    if (!user1.getImg().equals("")) {
+                        StorageReference filePath = storageReference.child("UsersIMG").child(user1.getImg());
+                        filePath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri uri) {
+                                Glide.with(Profile.this).load(uri).fitCenter().centerCrop().into(imageView);
+                            }
+                        });
+                    } else {
+                        imageView.setImageResource(R.drawable.profile);
                     }
                 }
 

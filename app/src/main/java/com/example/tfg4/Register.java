@@ -24,6 +24,8 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.util.HashMap;
+
 public class Register extends AppCompatActivity {
 
     EditText txtName, txtSurname, txtEmail, txtUserName, txtPassword, txtPassword2;
@@ -34,8 +36,9 @@ public class Register extends AppCompatActivity {
     DatabaseReference mDatabase;
     StorageReference mStorage;
 
-    private static final int galleryIntent = 1;
     String img = "";
+
+    private static final int galleryIntent = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +78,6 @@ public class Register extends AppCompatActivity {
                                     @Override
                                     public void onComplete(@NonNull Task<AuthResult> task) {
                                         if (task.isSuccessful()) {
-                                            // Sign in success, update UI with the signed-in user's information
                                             String userID = mAuth.getCurrentUser().getUid();
                                             writeNewUser(userID, userName, userSurname, userEmail, userUserName, img);
                                             Intent intent = new Intent (getApplicationContext(), Login.class);
@@ -112,34 +114,24 @@ public class Register extends AppCompatActivity {
         });
     }
 
-    private void writeNewUser(String userID, String userName, String userSurname, String userEmail, String userUserName, String img) {
-        User user = new User(userName, userSurname, userEmail, userUserName, img);
-        mDatabase.child("Users").child(userID).setValue(user);
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == galleryIntent && resultCode == RESULT_OK) {
             Uri uri = data.getData();
-
-            StorageReference filePath = mStorage.child("Images").child(uri.getLastPathSegment());
-
+            StorageReference filePath = mStorage.child("UsersIMG").child(uri.getLastPathSegment());
             filePath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    Task<Uri> uri2 = taskSnapshot.getStorage().getDownloadUrl();
-                    uri2.addOnSuccessListener(new OnSuccessListener<Uri>() {
-                        @Override
-                        public void onSuccess(Uri downloadUrl) {
-                            img = downloadUrl.toString();
-                        }
-                    });
-
-                    Toast.makeText(Register.this, "Foto subida correctamente", Toast.LENGTH_SHORT).show();
+                    img = uri.getLastPathSegment();
                 }
             });
         }
+    }
+
+    private void writeNewUser(String userID, String userName, String userSurname, String userEmail, String userUserName, String img) {
+        User user = new User(userName, userSurname, userEmail, userUserName, img);
+        mDatabase.child("Users").child(userID).setValue(user);
     }
 }

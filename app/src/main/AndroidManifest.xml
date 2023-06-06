@@ -141,8 +141,8 @@
             android:name=".Maps"
             android:exported="false" >
             <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
+                android:name="com.google.android.geo.API_KEY"
+                android:value="AIzaSyBMTSt1Xsu581lrzdYC_kAQSVikccj7J48" />
         </activity>
         <activity
             android:name=".Reserves"

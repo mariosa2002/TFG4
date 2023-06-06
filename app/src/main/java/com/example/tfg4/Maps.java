@@ -57,7 +57,14 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
             return;
         }
 
-       // locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+        LocationListener prueba = new LocationListener() {
+            @Override
+            public void onLocationChanged(@NonNull Location location) {
+                double latitude = location.getLatitude();
+                double longitude = location.getLongitude();
+            }
+        };
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, prueba);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
         mapFragment.getMapAsync(this);
