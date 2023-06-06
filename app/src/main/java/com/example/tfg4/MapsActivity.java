@@ -14,7 +14,9 @@ import com.example.tfg4.databinding.ActivityMaps2Binding;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-private ActivityMaps2Binding binding;
+    private ActivityMaps2Binding binding;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

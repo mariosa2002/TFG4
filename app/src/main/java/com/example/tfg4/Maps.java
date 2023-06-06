@@ -32,6 +32,7 @@ import java.util.ArrayList;
 public class Maps extends AppCompatActivity implements OnMapReadyCallback {
 
     BottomNavigationView bottomNavigationView;
+    Button btn;
 
     private GoogleMap mMap;
 
@@ -45,7 +46,7 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+      /*  locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
                 PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
@@ -67,7 +68,16 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, prueba);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
-        mapFragment.getMapAsync(this);
+        mapFragment.getMapAsync(this); */
+
+    /*    btn = findViewById(R.id.btnMaps);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
+                startActivity(intent);
+            }
+        }); */
 
         bottomNavigationView = findViewById(R.id.bottom_navigator);
         bottomNavigationView.setSelectedItemId(R.id.maps);
@@ -98,6 +108,10 @@ public class Maps extends AppCompatActivity implements OnMapReadyCallback {
                 return false;
             }
         });
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map_fragment);
+        mapFragment.getMapAsync(this);
     }
 
    /* @Override
