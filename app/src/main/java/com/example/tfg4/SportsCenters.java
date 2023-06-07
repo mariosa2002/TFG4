@@ -33,7 +33,7 @@ public class SportsCenters extends AppCompatActivity {
         }
 
         scRecyclerView = findViewById(R.id.rvSportsCenters);
-        scLayoutManager = new GridLayoutManager(this, 2);
+        scLayoutManager = new GridLayoutManager(this, 1);
         scAdapter = new SportsCenterAdapter(sportsCenters);
 
         scRecyclerView.setLayoutManager(scLayoutManager);

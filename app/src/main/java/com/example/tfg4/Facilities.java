@@ -59,7 +59,7 @@ public class Facilities extends AppCompatActivity {
         facilities.add(new Facility("Pista de Bádminton", R.drawable.f7));
         facilities.add(new Facility("Pabellón", R.drawable.f8));
 
-        facilityLayoutManager = new GridLayoutManager(this, 2);
+        facilityLayoutManager = new GridLayoutManager(this, 1);
         facilityAdapter = new FacilityAdapter(facilities);
         facilityRecyclerView = findViewById(R.id.rvFacilities);
         facilityRecyclerView.setLayoutManager(facilityLayoutManager);
