@@ -1,9 +1,5 @@
 package com.example.tfg4;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,18 +9,26 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 
 public class Register extends AppCompatActivity {
 
@@ -33,10 +37,13 @@ public class Register extends AppCompatActivity {
     TextView txtLogin;
 
     FirebaseAuth mAuth;
-    DatabaseReference mDatabase;
+    DatabaseReference mDatabase, userRfef;
     StorageReference mStorage;
+    Query query;
 
     String img = "";
+
+    ArrayList<User> users;
 
     private static final int galleryIntent = 1;
 
@@ -48,6 +55,9 @@ public class Register extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mStorage = FirebaseStorage.getInstance().getReference();
+
+        userRfef = FirebaseDatabase.getInstance().getReference("Users");
+        users = new ArrayList<User>();
 
         btnImg = findViewById(R.id.btnImg);
         btnRegister = findViewById(R.id.btnRegister);
@@ -73,22 +83,41 @@ public class Register extends AppCompatActivity {
                     Toast.makeText(Register.this, "Los campos deben de estar rellenos", Toast.LENGTH_SHORT).show();
                 } else {
                     if (userPassword.equals(userPassword2)) {
-                        mAuth.createUserWithEmailAndPassword(userEmail, userPassword)
-                                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<AuthResult> task) {
-                                        if (task.isSuccessful()) {
-                                            String userID = mAuth.getCurrentUser().getUid();
-                                            writeNewUser(userID, userName, userSurname, userEmail, userUserName, img);
-                                            Intent intent = new Intent (getApplicationContext(), Login.class);
-                                            startActivity(intent);
-                                        } else {
-                                            // If sign in fails, display a message to the user.
-                                            Toast.makeText(Register.this, "Authentication failed.",
-                                                    Toast.LENGTH_SHORT).show();
+                        query = userRfef.orderByChild("userID");
+                        query.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                User user = snapshot.getValue(User.class);
+                                if (user.getUserUserName().equals(txtUserName)) {
+                                    users.add(user);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
+                        if (users.size() == 0) {
+                            mAuth.createUserWithEmailAndPassword(userEmail, userPassword)
+                                    .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<AuthResult> task) {
+                                            if (task.isSuccessful()) {
+                                                String userID = mAuth.getCurrentUser().getUid();
+                                                writeNewUser(userID, userName, userSurname, userEmail, userUserName, img);
+                                                Intent intent = new Intent (getApplicationContext(), Login.class);
+                                                startActivity(intent);
+                                            } else {
+                                                // If sign in fails, display a message to the user.
+                                                Toast.makeText(Register.this, "Authentication failed.",
+                                                        Toast.LENGTH_SHORT).show();
+                                            }
                                         }
-                                    }
-                                });
+                                    });
+                        } else {
+                            Toast.makeText(Register.this, "Nombre de usuario no disponible", Toast.LENGTH_SHORT).show();
+                        }
                     } else {
                         Toast.makeText(Register.this, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show();
                     }
